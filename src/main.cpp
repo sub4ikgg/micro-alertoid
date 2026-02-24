@@ -39,9 +39,7 @@ void checkResourceAvailability() {
   if (code < 0) {
     Serial.println("Retrying...");
 
-    http.end();
-    checkResourceAvailability();
-    
+    http.end();    
     return;
   }
 

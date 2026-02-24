@@ -8,6 +8,6 @@ void connectToWifi();
 void writeWifiConf(String ssid, String password);
 void stopConnectingToWifi();
 bool isConnectedToWifi();
-struct String getDeviceName();
+static String getDeviceName();
 
 #endif
