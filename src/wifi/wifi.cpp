@@ -29,15 +29,12 @@ void connectToWifi() {
 
   toggleGreenPin(false);
 
-  int attempt = 0;
   while (WiFi.status() != WL_CONNECTED) {
     if (_stopConnectingToWifi) {
         WiFi.disconnect();
         _stopConnectingToWifi = false;
         return;
     }
-
-    attempt++;
 
     Serial.print(".");
 
