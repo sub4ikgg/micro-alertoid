@@ -4,42 +4,75 @@
 #include "wifi/wifi.h"
 #include "ble/ble.h"
 
+WiFiClientSecure secureClient;
+WiFiClient client;
+
+int bleToggleCounter = 0;
+
+void setInsecureWifiClient();
 void checkResourceAvailability();
 
 void setup() {
   Serial.begin(115200);
+  client.setTimeout(5);
 
+  pinMode(0, INPUT_PULLUP);
   preparePinMode();
   testLeds();
 
-  initBle();
+  setInsecureWifiClient();
   connectToWifi();
+  initBle();
+}
+
+void setInsecureWifiClient() {
+  secureClient.setInsecure();
 }
 
 void loop() {
-  while (!isConnectedToWifi()) {
+  if (digitalRead(0) == LOW && !isBleAdvertising) {
+    bleToggleCounter++;
+
+    if (bleToggleCounter > 3)
+    {
+      bleToggleCounter = 0;
+      startBleAdvertising();
+    }
+
+    delay(1000);
+    return;
+  } else if (bleToggleCounter > 0) {
+    bleToggleCounter = 0;
+  }
+
+  if (isBleAdvertising) {
+    bleIsEnabledBlink();
+    return;
+  }
+  
+  if (!isConnectedToWifi()) {
     Serial.println("[Main] Device is not connected to Wi-Fi. Trying to connect...");
 
     waitingForWifiBlink();
     connectToWifi();
+    return;
   }
 
   checkResourceAvailability();
-  
-  delay(10000);
 }
 
 void checkResourceAvailability() {
+  Serial.println("Free Heap: " + String(ESP.getFreeHeap()));
   Serial.print("[Main] Checking resource availability... ");
   
   HTTPClient http;
-  http.begin("http://jsonplaceholder.typicode.com/todos/1");
+  http.begin("https://httpbin.org/status/503");
 
   int code = http.GET();
-  if (code < 0) {
-    Serial.println("Retrying...");
+  http.end();
 
-    http.end();    
+  if (code < 0) {
+    Serial.println("Retrying..."); 
     return;
   }
 
@@ -48,12 +81,9 @@ void checkResourceAvailability() {
     toggleRedPin(false);
 
     Serial.println("Resource is available (200 OK)");
+    delay(10000);
   } else {
-    toggleRedPin(true);
-    toggleGreenPin(false);
-
     Serial.println("Resource is not available (" + String(code) + ")");
+    resourceIsNotAvailableBlink();
   }
-
-  http.end();
 }

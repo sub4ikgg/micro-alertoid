@@ -66,6 +66,41 @@ void waitingForBleBlink() {
   toggleRedPin(false);
 }
 
+void resourceIsNotAvailableBlink() {
+  toggleYellowPin(false);
+  toggleGreenPin(false);
+  toggleRedPin(false);
+
+  for (size_t i = 0; i < 10; i++)
+  {
+    toggleRedPin(true);
+
+    delay(50);
+
+    toggleRedPin(false);
+
+    delay(50);
+  }
+
+  toggleRedPin(true);
+}
+
+void bleIsEnabledBlink() {
+  toggleYellowPin(false);
+  toggleGreenPin(false);
+  toggleRedPin(false);
+
+  toggleYellowPin(true);
+  toggleRedPin(true);
+
+  delay(250);
+
+  toggleYellowPin(false);
+  toggleRedPin(false);
+
+  delay(250);
+}
+
 void toggleYellowPin(bool val) {
   digitalWrite(Y_PIN, val ? HIGH : LOW);
 }

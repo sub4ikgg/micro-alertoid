@@ -2,15 +2,18 @@
 #include <Arduino.h>
 #include "wifi/wifi.h"
 
+bool isBleInitialized = false;
+bool isBleAdvertising = false;
+
 static BLECharacteristic *pTxChar;
 
 class ServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer *s) {
         Serial.println("[BLE] Device connected");
     }
+
     void onDisconnect(BLEServer *s) {
         Serial.println("[BLE] Device disconnected");
-        s->startAdvertising();
     }
 };
 
@@ -18,13 +21,14 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pChar) {
         // conf format: "ssid;password"
         String msg = pChar->getValue().c_str();
-        Serial.println("[BLE] Received msg as WifiConf: " + msg);
 
-        if (!msg.isEmpty()) {
+        if (msg.length() > 0) {
             int separatorIndex = msg.indexOf(';');
 
-            String ssid = msg.substring(0, separatorIndex);;
-            String password = msg.substring(separatorIndex + 1);;
+            String ssid = msg.substring(0, separatorIndex);
+            String password = msg.substring(separatorIndex + 1);
+
+            Serial.println("[BLE] Received " + ssid + " with password " + password);
 
             stopConnectingToWifi();
             writeWifiConf(ssid, password);
@@ -34,6 +38,8 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
 };
 
 void initBle() {
+    if (isBleInitialized) return;
+
     BLEDevice::init(getDeviceName().c_str());
 
     BLEServer *pServer = BLEDevice::createServer();
@@ -54,8 +60,28 @@ void initBle() {
     pCmdChar->setCallbacks(new WifiConfCallbacks());
 
     pService->start();
-    pServer->getAdvertising()->start();
-    Serial.println("[BLE] Advertising started as " + getDeviceName());
+    Serial.println("[BLE] Initialized as " + getDeviceName());
+    startBleAdvertising();
+
+    isBleInitialized = true;
+}
+
+void startBleAdvertising() {
+    if (isBleAdvertising) return;
+
+    BLEDevice::getAdvertising()->start();
+    isBleAdvertising = true;
+
+    Serial.println("[BLE] Started advertising as " + getDeviceName());
+}
+
+void stopBleAdvertising() {
+    if (!isBleAdvertising) return;
+
+    BLEDevice::getAdvertising()->stop();
+    isBleAdvertising = false;
+
+    Serial.println("[BLE] Stopped advertising as " + getDeviceName());
 }
 
 String getDeviceName() {

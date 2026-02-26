@@ -23,13 +23,15 @@ void connectToWifi() {
   
   prefs.end();
 
-  WiFi.disconnect();
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.print("[Wi-Fi] Connecting to " + ssid);
 
   toggleGreenPin(false);
 
   while (WiFi.status() != WL_CONNECTED) {
+    if (digitalRead(0) == LOW) return;
+
     if (_stopConnectingToWifi) {
         WiFi.disconnect();
         _stopConnectingToWifi = false;
