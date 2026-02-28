@@ -5,22 +5,28 @@
 #include <WiFi.h>
 #include <Preferences.h>
 
+static const char* PREFS_NAMESPACE  = "wifi_prefs";
+static const char* PREFS_KEY_SSID   = "wifi_ssid";
+static const char* PREFS_KEY_PASS   = "wifi_password";
+const int BOOT_BUTTON_PIN           = 0;
+const int WIFI_CONNECT_BLINK_DELAY  = 500;
+
 static bool _stopConnectingToWifi = false;
 
 void connectToWifi() {
   _stopConnectingToWifi = false;
 
   Preferences prefs;
-  prefs.begin("wifi_prefs");
+  prefs.begin(PREFS_NAMESPACE);
 
-  if (!prefs.isKey("wifi_ssid") && !prefs.isKey("wifi_password")) {
+  if (!prefs.isKey(PREFS_KEY_SSID) && !prefs.isKey(PREFS_KEY_PASS)) {
     LOG("[Wi-Fi] No Wi-Fi credentials found");
     prefs.end();
     return;
   }
   
-  String ssid = prefs.getString("wifi_ssid", "");
-  String password = prefs.getString("wifi_password", "");
+  String ssid = prefs.getString(PREFS_KEY_SSID, "");
+  String password = prefs.getString(PREFS_KEY_PASS, "");
   
   prefs.end();
 
@@ -31,7 +37,7 @@ void connectToWifi() {
   toggleGreenPin(false);
 
   while (WiFi.status() != WL_CONNECTED) {
-    if (digitalRead(0) == LOW) return;
+    if (digitalRead(BOOT_BUTTON_PIN) == LOW) return;
 
     if (_stopConnectingToWifi) {
         WiFi.disconnect();
@@ -40,10 +46,10 @@ void connectToWifi() {
     }
 
     toggleYellowPin(true);
-    delay(500);
+    delay(WIFI_CONNECT_BLINK_DELAY);
 
     toggleYellowPin(false);
-    delay(500);
+    delay(WIFI_CONNECT_BLINK_DELAY);
   }
 
   toggleGreenPin(true);
@@ -55,8 +61,8 @@ void writeWifiConf(String ssid, String password) {
   Preferences prefs;
   prefs.begin("wifi_prefs");
 
-  prefs.putString("wifi_ssid", ssid);
-  prefs.putString("wifi_password", password);
+  prefs.putString(PREFS_KEY_SSID, ssid);
+  prefs.putString(PREFS_KEY_PASS, password);
 
   prefs.end();
 }
