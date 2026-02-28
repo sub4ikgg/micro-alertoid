@@ -3,6 +3,7 @@
 #include "led/led.h"
 #include "wifi/wifi.h"
 #include "ble/ble.h"
+#include "debug.h"
 
 WiFiClientSecure secureClient;
 WiFiClient client;
@@ -65,7 +66,7 @@ void loop() {
   }
   
   if (!isConnectedToWifi()) {
-    Serial.println("[Main] Device is not connected to Wi-Fi. Trying to connect...");
+    LOG("[Main] Device is not connected to Wi-Fi. Trying to connect...");
 
     waitingForWifiBlink();
     connectToWifi();
@@ -84,7 +85,7 @@ void loop() {
 void checkResourceAvailability() {
   if (digitalRead(BOOT_BUTTON_PIN) == LOW && isBleAdvertising) return;
 
-  Serial.println("[Main] Checking resource availability...");
+  LOG("[Main] Checking resource availability...");
   
   HTTPClient http;
   http.begin("https://httpbin.org/status/200");
@@ -93,7 +94,7 @@ void checkResourceAvailability() {
   http.end();
 
   if (code < 0) {
-    Serial.println("[Main] Retrying...");
+    LOG("[Main] Retrying...");
     return;
   }
 
@@ -101,9 +102,9 @@ void checkResourceAvailability() {
     toggleGreenPin(true);
     toggleRedPin(false);
 
-    Serial.println("[Main] Resource is available (200 OK)");
+    LOG("[Main] Resource is available (200 OK)");
   } else {
-    Serial.println("[Main] Resource is not available (" + String(code) + ")");
+    LOG("[Main] Resource is not available (" + String(code) + ")");
     resourceIsNotAvailableBlink();
   }
 }

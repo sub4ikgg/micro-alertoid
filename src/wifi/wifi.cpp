@@ -1,6 +1,7 @@
 #include "wifi.h"
 
 #include <Arduino.h>
+#include "../debug.h"
 #include <WiFi.h>
 #include <Preferences.h>
 
@@ -13,7 +14,7 @@ void connectToWifi() {
   prefs.begin("wifi_prefs");
 
   if (!prefs.isKey("wifi_ssid") && !prefs.isKey("wifi_password")) {
-    Serial.println("[Wi-Fi] No Wi-Fi credentials found");
+    LOG("[Wi-Fi] No Wi-Fi credentials found");
     prefs.end();
     return;
   }
@@ -25,7 +26,7 @@ void connectToWifi() {
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  Serial.println("[Wi-Fi] Connecting to " + ssid);
+  LOG("[Wi-Fi] Connecting to " + ssid);
 
   toggleGreenPin(false);
 
@@ -47,7 +48,7 @@ void connectToWifi() {
 
   toggleGreenPin(true);
 
-  Serial.println("[Wi-Fi] Connected to " + ssid);
+  LOG("[Wi-Fi] Connected to " + ssid);
 }
 
 void writeWifiConf(String ssid, String password) {

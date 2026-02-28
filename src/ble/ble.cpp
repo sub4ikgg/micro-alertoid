@@ -1,6 +1,7 @@
 #include "ble.h"
 #include <Arduino.h>
 #include "wifi/wifi.h"
+#include "../debug.h"
 
 bool isBleInitialized = false;
 bool isBleDeviceConnected = false;
@@ -11,12 +12,12 @@ static BLECharacteristic *pTxChar;
 class ServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer *s) {
         isBleDeviceConnected = true;
-        Serial.println("[BLE] Device connected");
+        LOG("[BLE] Device connected");
     }
 
     void onDisconnect(BLEServer *s) {
         isBleDeviceConnected = false;
-        Serial.println("[BLE] Device disconnected");
+        LOG("[BLE] Device disconnected");
     }
 };
 
@@ -31,7 +32,7 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
             String ssid = msg.substring(0, separatorIndex);
             String password = msg.substring(separatorIndex + 1);
 
-            Serial.println("[BLE] Received " + ssid + " with password " + password);
+            LOG("[BLE] Received " + ssid + " with password " + password);
 
             stopConnectingToWifi();
             writeWifiConf(ssid, password);
@@ -63,7 +64,7 @@ void initBle() {
     pWifiConfChar->setCallbacks(new WifiConfCallbacks());
 
     pService->start();
-    Serial.println("[BLE] Initialized as " + getDeviceName());
+    LOG("[BLE] Initialized as " + getDeviceName());
 
     isBleInitialized = true;
 }
@@ -74,7 +75,7 @@ void startBleAdvertising() {
     BLEDevice::getAdvertising()->start();
     isBleAdvertising = true;
 
-    Serial.println("[BLE] Started advertising as " + getDeviceName());
+    LOG("[BLE] Started advertising as " + getDeviceName());
 }
 
 void stopBleAdvertising() {
@@ -83,7 +84,7 @@ void stopBleAdvertising() {
     BLEDevice::getAdvertising()->stop();
     isBleAdvertising = false;
 
-    Serial.println("[BLE] Stopped advertising as " + getDeviceName());
+    LOG("[BLE] Stopped advertising as " + getDeviceName());
 }
 
 String getDeviceName() {
