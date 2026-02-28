@@ -67,7 +67,7 @@ void loop() {
   }
   
   if (!isConnectedToWifi()) {
-    LOG("[Main] Device is not connected to Wi-Fi. Trying to connect...");
+    LOG("[Loop] Device is not connected to Wi-Fi. Trying to connect...");
 
     waitingForWifiBlink();
     connectToWifi();
