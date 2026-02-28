@@ -1,8 +1,9 @@
 #include <Arduino.h>
-#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include "led/led.h"
 #include "wifi/wifi.h"
 #include "ble/ble.h"
+#include "resource/resource.h"
 #include "debug.h"
 
 WiFiClientSecure secureClient;
@@ -14,14 +15,12 @@ const int WIFI_CLIENT_TIMEOUT = 5;
 const int BLE_TOGGLE_PRESS_THRESHOLD = 3;
 const int BLE_AUTO_STOP_INTERVAL = 60;
 const int RESOURCE_CHECK_INTERVAL = 100;
-const int HTTP_OK = 200;
 
 int bleToggleCounter = 0;
 int bleAutoStopCounter = 0;
 int resourceCheckingCounter = RESOURCE_CHECK_INTERVAL;
 
 void setInsecureWifiClient();
-void checkResourceAvailability();
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
@@ -81,32 +80,5 @@ void loop() {
   } else {
     resourceCheckingCounter++;
     delay(100);
-  }
-}
-
-void checkResourceAvailability() {
-  if (digitalRead(BOOT_BUTTON_PIN) == LOW && isBleAdvertising) return;
-
-  LOG("[Main] Checking resource availability...");
-  
-  HTTPClient http;
-  http.begin("https://httpbin.org/status/200");
-
-  int code = http.GET();
-  http.end();
-
-  if (code < 0) {
-    LOG("[Main] Retrying...");
-    return;
-  }
-
-  if (code == HTTP_OK) {
-    toggleGreenPin(true);
-    toggleRedPin(false);
-
-    LOG("[Main] Resource is available (200 OK)");
-  } else {
-    LOG("[Main] Resource is not available (" + String(code) + ")");
-    resourceIsNotAvailableBlink();
   }
 }

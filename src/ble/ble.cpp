@@ -22,8 +22,10 @@ class ServerCallbacks : public BLEServerCallbacks {
 };
 
 class WifiConfCallbacks : public BLECharacteristicCallbacks {
+    // =====================
+    // config format: ssid;password
+    // =====================
     void onWrite(BLECharacteristic *pChar) {
-        // conf format: "ssid;password"
         String msg = pChar->getValue().c_str();
 
         if (msg.length() > 0) {
@@ -38,6 +40,15 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
             writeWifiConf(ssid, password);
             connectToWifi();
         }
+    }
+};
+
+class UrlConfCallbacks : public BLECharacteristicCallbacks {
+    // =====================
+    // config format: url;code
+    // =====================
+    void onWrite(BLECharacteristic *pChar) {
+        const char* url = pChar->getValue().c_str();
     }
 };
 
@@ -62,6 +73,12 @@ void initBle() {
         BLECharacteristic::PROPERTY_WRITE
     );
     pWifiConfChar->setCallbacks(new WifiConfCallbacks());
+
+    BLECharacteristic *pUrlConfChar = pService->createCharacteristic(
+        BLE_URL_CONF_UUID,
+        BLECharacteristic::PROPERTY_WRITE
+    );
+    pUrlConfChar->setCallbacks(new UrlConfCallbacks());
 
     pService->start();
     LOG("[BLE] Initialized as " + getDeviceName());
