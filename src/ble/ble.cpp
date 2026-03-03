@@ -1,6 +1,7 @@
 #include "ble.h"
 #include <Arduino.h>
 #include "wifi/wifi.h"
+#include "resource/resource.h"
 #include "../debug.h"
 
 bool isBleInitialized = false;
@@ -8,6 +9,7 @@ bool isBleDeviceConnected = false;
 bool isBleAdvertising = false;
 
 static BLECharacteristic *pTxChar;
+static String getDeviceName();
 
 class ServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer *s) {
@@ -18,6 +20,7 @@ class ServerCallbacks : public BLEServerCallbacks {
     void onDisconnect(BLEServer *s) {
         isBleDeviceConnected = false;
         LOG(F("[BLE] Device disconnected"));
+        stopBleAdvertising();
     }
 };
 
@@ -48,7 +51,18 @@ class UrlConfCallbacks : public BLECharacteristicCallbacks {
     // config format: url;code
     // =====================
     void onWrite(BLECharacteristic *pChar) {
-        const char* url = pChar->getValue().c_str();
+        String msg = pChar->getValue().c_str();
+
+        if (msg.length() > 0) {
+            int separatorIndex = msg.indexOf(';');
+
+            String url = msg.substring(0, separatorIndex);
+            int code   = msg.substring(separatorIndex + 1).toInt();
+
+            LOG("[BLE] Received url " + url + " with code " + String(code));
+
+            writeResourceConf(url, code);
+        }
     }
 };
 
@@ -104,7 +118,7 @@ void stopBleAdvertising() {
     LOG("[BLE] Stopped advertising as " + getDeviceName());
 }
 
-String getDeviceName() {
+static String getDeviceName() {
     uint64_t chipId = ESP.getEfuseMac();
     String id = "";
     for (int i = 5; i >= 0; i--) {

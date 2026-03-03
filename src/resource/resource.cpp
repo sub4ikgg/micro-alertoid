@@ -26,6 +26,7 @@ void checkResourceAvailability() {
   loadPrefsIfNeeded();
 
   LOG(F("[Resource] Checking resource availability..."));
+  LOG("[Resource] " + _url);
 
   HTTPClient http;
   http.begin(_url);
@@ -42,9 +43,13 @@ void checkResourceAvailability() {
     toggleRedPin(false);
 
     toggleGreenPin(true);
-    delay(50);
+    delay(100);
     toggleGreenPin(false);
-    delay(50);
+    delay(100);
+    toggleGreenPin(true);
+    delay(100);
+    toggleGreenPin(false);
+    delay(100);
     toggleGreenPin(true);
 
     LOG("[Resource] Available (" + String(_expectedCode) + ")");
@@ -58,9 +63,9 @@ static void loadPrefsIfNeeded() {
   if (_expectedCode != -1) return;
 
   Preferences prefs;
-  prefs.begin(PREFS_NAMESPACE, true);
-  _url          = prefs.getString(PREFS_KEY_URL, DEFAULT_RESOURCE_URL);
-  _expectedCode = prefs.getInt(PREFS_KEY_CODE, DEFAULT_EXPECTED_CODE);
+  prefs.begin(PREFS_NAMESPACE);
+  _url          = prefs.isKey(PREFS_KEY_URL)  ? prefs.getString(PREFS_KEY_URL)  : DEFAULT_RESOURCE_URL;
+  _expectedCode = prefs.isKey(PREFS_KEY_CODE) ? prefs.getInt(PREFS_KEY_CODE)    : DEFAULT_EXPECTED_CODE;
   prefs.end();
 }
 

@@ -14,13 +14,13 @@ const int SERIAL_BAUD_RATE           = 115200;
 const int WIFI_CLIENT_TIMEOUT        = 5;
 const int BLE_TOGGLE_PRESS_THRESHOLD = 3;
 const int BLE_AUTO_STOP_INTERVAL     = 60;
-const int RESOURCE_CHECK_INTERVAL    = 100;
+const int RESOURCE_CHECK_INTERVAL    = 30; // 3 sec.
 
 int bleToggleCounter = 0;
 int bleAutoStopCounter = 0;
 int resourceCheckingCounter = RESOURCE_CHECK_INTERVAL;
 
-void setInsecureWifiClient();
+static void setInsecureWifiClient();
 
 void setup() {
   Serial.begin(SERIAL_BAUD_RATE);
@@ -35,7 +35,7 @@ void setup() {
   connectToWifi();
 }
 
-void setInsecureWifiClient() {
+static void setInsecureWifiClient() {
   secureClient.setInsecure();
 }
 

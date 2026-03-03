@@ -42,7 +42,7 @@ void waitingForWifiBlink() {
   delay(500);
 }
 
-void waitingForBleBlink() {
+static void waitingForBleBlink() {
   toggleYellowPin(false);
   toggleGreenPin(false);
   toggleRedPin(false);

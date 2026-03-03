@@ -4,7 +4,6 @@
 void preparePinMode();
 void testLeds();
 void waitingForWifiBlink();
-void waitingForBleBlink();
 void resourceIsNotAvailableBlink();
 void bleIsEnabledBlink();
 
