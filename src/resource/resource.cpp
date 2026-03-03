@@ -25,7 +25,7 @@ void checkResourceAvailability() {
 
   loadPrefsIfNeeded();
 
-  LOG("[Resource] Checking resource availability...");
+  LOG(F("[Resource] Checking resource availability..."));
 
   HTTPClient http;
   http.begin(_url);
@@ -34,7 +34,7 @@ void checkResourceAvailability() {
   http.end();
 
   if (code < 0) {
-    LOG("[Resource] Retrying...");
+    LOG(F("[Resource] Retrying..."));
     return;
   }
 
@@ -47,7 +47,7 @@ void checkResourceAvailability() {
     delay(50);
     toggleGreenPin(true);
 
-    LOG("[Resource] Available (200 OK)");
+    LOG("[Resource] Available (" + String(_expectedCode) + ")");
   } else {
     LOG("[Resource] Not available (" + String(code) + ")");
     resourceIsNotAvailableBlink();

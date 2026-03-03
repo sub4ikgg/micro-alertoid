@@ -20,7 +20,7 @@ void connectToWifi() {
   prefs.begin(PREFS_NAMESPACE);
 
   if (!prefs.isKey(PREFS_KEY_SSID) && !prefs.isKey(PREFS_KEY_PASS)) {
-    LOG("[Wi-Fi] No Wi-Fi credentials found");
+    LOG(F("[Wi-Fi] No Wi-Fi credentials found"));
     prefs.end();
     return;
   }

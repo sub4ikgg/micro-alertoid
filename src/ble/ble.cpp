@@ -12,12 +12,12 @@ static BLECharacteristic *pTxChar;
 class ServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer *s) {
         isBleDeviceConnected = true;
-        LOG("[BLE] Device connected");
+        LOG(F("[BLE] Device connected"));
     }
 
     void onDisconnect(BLEServer *s) {
         isBleDeviceConnected = false;
-        LOG("[BLE] Device disconnected");
+        LOG(F("[BLE] Device disconnected"));
     }
 };
 
