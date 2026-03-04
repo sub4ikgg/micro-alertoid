@@ -48,7 +48,7 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
 
 class UrlConfCallbacks : public BLECharacteristicCallbacks {
     // =====================
-    // config format: url;code
+    // config format: url;code;check_interval;blink_interval;
     // =====================
     void onWrite(BLECharacteristic *pChar) {
         String msg = pChar->getValue().c_str();
