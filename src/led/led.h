@@ -6,6 +6,7 @@ void testLeds();
 void waitingForWifiBlink();
 void resourceIsNotAvailableBlink();
 void bleIsEnabledBlink();
+void bleDeviceIsConnectedBlink();
 
 void toggleYellowPin(bool val);
 void toggleGreenPin(bool val);

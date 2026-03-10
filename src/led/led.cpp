@@ -85,6 +85,28 @@ void resourceIsNotAvailableBlink() {
   toggleRedPin(true);
 }
 
+void bleDeviceIsConnectedBlink() {
+  toggleYellowPin(false);
+  toggleGreenPin(false);
+  toggleRedPin(false);
+
+  toggleYellowPin(true);
+
+  delay(250);
+
+  toggleRedPin(true);
+
+  delay(250);
+
+  toggleYellowPin(false);
+
+  delay(250);
+
+  toggleRedPin(false);
+
+  delay(250);
+}
+
 void bleIsEnabledBlink() {
   toggleYellowPin(false);
   toggleGreenPin(false);

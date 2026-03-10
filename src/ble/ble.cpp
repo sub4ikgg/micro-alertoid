@@ -75,6 +75,7 @@ void initBle() {
     pServer->setCallbacks(new ServerCallbacks());
 
     BLEService *pService = pServer->createService(BLEUUID(BLE_SERVICE_UUID), 20);
+    BLEDevice::getAdvertising()->addServiceUUID(BLE_SERVICE_UUID);
 
     pTxChar = pService->createCharacteristic(
         BLE_TX_UUID,
@@ -109,6 +110,7 @@ void startBleAdvertising() {
     if (isBleAdvertising) return;
 
     BLEDevice::getAdvertising()->start();
+
     isBleAdvertising = true;
 
     LOG("[BLE] Started advertising as " + getDeviceName());

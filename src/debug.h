@@ -4,7 +4,7 @@
 #define DEBUG 1
 
 #if DEBUG
-  #define LOG(x) Serial.println(F(x))
+  #define LOG(x) Serial.println(x)
 #else
   #define LOG(x)
 #endif

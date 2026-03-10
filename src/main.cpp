@@ -13,7 +13,7 @@ const int BOOT_BUTTON_PIN            = 0;
 const int SERIAL_BAUD_RATE           = 115200;
 const int WIFI_CLIENT_TIMEOUT        = 5;
 const int BLE_TOGGLE_PRESS_THRESHOLD = 3;
-const int BLE_AUTO_STOP_INTERVAL     = 60;
+const int BLE_AUTO_STOP_INTERVAL     = 120; // 60 sec.
 const int RESOURCE_CHECK_INTERVAL    = 20; // 2 sec.
 
 int bleToggleCounter = 0;
@@ -57,7 +57,11 @@ void loop() {
   }
 
   if (isBleAdvertising || isBleDeviceConnected) {
-    bleIsEnabledBlink();
+    if (isBleDeviceConnected) {
+      bleDeviceIsConnectedBlink();
+    } else {
+      bleIsEnabledBlink();
+    }
 
     if (!isBleDeviceConnected) {
       if (++bleAutoStopCounter >= BLE_AUTO_STOP_INTERVAL) {
