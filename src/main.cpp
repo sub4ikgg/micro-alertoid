@@ -14,7 +14,7 @@ const int SERIAL_BAUD_RATE           = 115200;
 const int WIFI_CLIENT_TIMEOUT        = 5;
 const int BLE_TOGGLE_PRESS_THRESHOLD = 3;
 const int BLE_AUTO_STOP_INTERVAL     = 240; // 120 sec.
-const int RESOURCE_CHECK_INTERVAL    = 50; // 5 sec.
+const int RESOURCE_CHECK_INTERVAL    = 30; // 5 sec.
 
 int bleToggleCounter = 0;
 int bleAutoStopCounter = 0;
@@ -34,12 +34,18 @@ void setup() {
   testLeds();
 
   initBle();
+
+  if (esp_reset_reason() == ESP_RST_SW) {
+    LOG(F("[BLE] Auto-advertising after SW reboot"));
+    startBleAdvertising();
+  }
+
   setInsecureWifiClient();
   connectToWifi();
 }
 
 static void setInsecureWifiClient() {
-  secureClient.setInsecure();
+  // secureClient.setInsecure();
 }
 
 void loop() {
@@ -92,6 +98,6 @@ void loop() {
     checkResourceAvailability();
   } else {
     resourceCheckingCounter++;
-    delay(10);
+    delay(100);
   }
 }

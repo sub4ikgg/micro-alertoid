@@ -4,16 +4,21 @@
 #include "resource/resource.h"
 #include "../debug.h"
 
+#define FIRMWARE_VERSION "1.0.0"
+
 bool isBleInitialized = false;
 bool isBleDeviceConnected = false;
 bool isBleAdvertising = false;
 
 static BLECharacteristic *pTxChar;
+static BLECharacteristic *pFirmwareChar;
 static String getDeviceName();
+static String getFirmwareJson();
 
 class ServerCallbacks : public BLEServerCallbacks {
     void onConnect(BLEServer *s) {
         isBleDeviceConnected = true;
+        pFirmwareChar->setValue(getFirmwareJson().c_str());
         LOG(F("[BLE] Device connected"));
     }
 
@@ -66,6 +71,22 @@ class UrlConfCallbacks : public BLECharacteristicCallbacks {
     }
 };
 
+class RebootCallbacks : public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pChar) {
+        String msg = pChar->getValue().c_str();
+        if (msg == "reboot") {
+            LOG(F("[BLE] Rebooting..."));
+            ESP.restart();
+        }
+    }
+};
+
+class FirmwareCallbacks : public BLECharacteristicCallbacks {
+    void onRead(BLECharacteristic *pChar) {
+        pChar->setValue(getFirmwareJson().c_str());
+    }
+};
+
 void initBle() {
     if (isBleInitialized) return;
 
@@ -94,6 +115,18 @@ void initBle() {
         BLECharacteristic::PROPERTY_WRITE
     );
     pUrlConfChar->setCallbacks(new UrlConfCallbacks());
+
+    pFirmwareChar = pService->createCharacteristic(
+        BLE_FIRMWARE_UUID,
+        BLECharacteristic::PROPERTY_READ
+    );
+    pFirmwareChar->setCallbacks(new FirmwareCallbacks());
+
+    BLECharacteristic *pRebootChar = pService->createCharacteristic(
+        BLE_REBOOT_UUID,
+        BLECharacteristic::PROPERTY_WRITE
+    );
+    pRebootChar->setCallbacks(new RebootCallbacks());
 
     pService->start();
     LOG("[BLE] Initialized as " + getDeviceName());
@@ -134,4 +167,11 @@ static String getDeviceName() {
     }
     id.toUpperCase();
     return "Alertoid-" + id;
+}
+
+static String getFirmwareJson() {
+    String mac = BLEDevice::getAddress().toString().c_str();
+    mac.toUpperCase();
+    String serial = getDeviceName();
+    return "{\"firmware\":\"" + String(FIRMWARE_VERSION) + "\",\"mac\":\"" + mac + "\",\"serial\":\"" + serial + "\"}";
 }

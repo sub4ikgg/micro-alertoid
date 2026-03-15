@@ -21,6 +21,8 @@ static int _expectedCode = -1;
 static void loadPrefsIfNeeded();
 
 void checkResourceAvailability() {
+  LOG("[Resource] Left memory: " + String(ESP.getFreeHeap()));
+
   if (digitalRead(BOOT_BUTTON_PIN) == LOW && isBleAdvertising) return;
 
   loadPrefsIfNeeded();
@@ -57,6 +59,8 @@ void checkResourceAvailability() {
     LOG("[Resource] Not available (" + String(code) + ")");
     resourceIsNotAvailableBlink();
   }
+
+  LOG("[Resource] Left memory: " + String(ESP.getFreeHeap()));
 }
 
 static void loadPrefsIfNeeded() {
