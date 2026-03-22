@@ -14,11 +14,10 @@ const int SERIAL_BAUD_RATE           = 115200;
 const int WIFI_CLIENT_TIMEOUT        = 5;
 const int BLE_TOGGLE_PRESS_THRESHOLD = 3;
 const int BLE_AUTO_STOP_INTERVAL     = 240; // 120 sec.
-const int RESOURCE_CHECK_INTERVAL    = 30; // 5 sec.
 
 int bleToggleCounter = 0;
 int bleAutoStopCounter = 0;
-int resourceCheckingCounter = RESOURCE_CHECK_INTERVAL;
+int resourceCheckingCounter = 0;
 
 static void setInsecureWifiClient();
 
@@ -78,7 +77,7 @@ void loop() {
         bleAutoStopCounter = 0;
         stopBleAdvertising();
 
-        resourceCheckingCounter = RESOURCE_CHECK_INTERVAL;
+        resourceCheckingCounter = getResourceCheckInterval();
       }
     }
 
@@ -93,7 +92,7 @@ void loop() {
     return;
   }
 
-  if (resourceCheckingCounter >= RESOURCE_CHECK_INTERVAL) {
+  if (resourceCheckingCounter >= getResourceCheckInterval()) {
     resourceCheckingCounter = 0;
     checkResourceAvailability();
   } else {

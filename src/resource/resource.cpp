@@ -12,11 +12,14 @@ const int BOOT_BUTTON_PIN = 0;
 static const char* PREFS_NAMESPACE       = "res_prefs";
 static const char* PREFS_KEY_URL         = "res_url";
 static const char* PREFS_KEY_CODE        = "res_code";
+static const char* PREFS_KEY_INTERVAL    = "res_interval";
 static const char* DEFAULT_RESOURCE_URL  = "https://httpbin.org/status/200";
 const int DEFAULT_EXPECTED_CODE          = 200;
+const int DEFAULT_CHECK_INTERVAL         = 30;
 
 static String _url;
-static int _expectedCode = -1;
+static int _expectedCode    = -1;
+static int _checkInterval   = -1;
 
 static void loadPrefsIfNeeded();
 
@@ -68,18 +71,26 @@ static void loadPrefsIfNeeded() {
 
   Preferences prefs;
   prefs.begin(PREFS_NAMESPACE);
-  _url          = prefs.isKey(PREFS_KEY_URL)  ? prefs.getString(PREFS_KEY_URL)  : DEFAULT_RESOURCE_URL;
-  _expectedCode = prefs.isKey(PREFS_KEY_CODE) ? prefs.getInt(PREFS_KEY_CODE)    : DEFAULT_EXPECTED_CODE;
+  _url           = prefs.isKey(PREFS_KEY_URL)      ? prefs.getString(PREFS_KEY_URL)  : DEFAULT_RESOURCE_URL;
+  _expectedCode  = prefs.isKey(PREFS_KEY_CODE)     ? prefs.getInt(PREFS_KEY_CODE)    : DEFAULT_EXPECTED_CODE;
+  _checkInterval = prefs.isKey(PREFS_KEY_INTERVAL) ? prefs.getInt(PREFS_KEY_INTERVAL): DEFAULT_CHECK_INTERVAL;
   prefs.end();
 }
 
-void writeResourceConf(String url, int expectedCode) {
+void writeResourceConf(String url, int expectedCode, int checkInterval) {
   Preferences prefs;
   prefs.begin(PREFS_NAMESPACE);
   prefs.putString(PREFS_KEY_URL, url);
   prefs.putInt(PREFS_KEY_CODE, expectedCode);
+  prefs.putInt(PREFS_KEY_INTERVAL, checkInterval);
   prefs.end();
 
-  _url = url;
-  _expectedCode = expectedCode;
+  _url           = url;
+  _expectedCode  = expectedCode;
+  _checkInterval = checkInterval;
+}
+
+int getResourceCheckInterval() {
+  loadPrefsIfNeeded();
+  return _checkInterval;
 }

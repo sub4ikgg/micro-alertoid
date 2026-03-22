@@ -7,13 +7,13 @@
 
 static const char* PREFS_NAMESPACE  = "wifi_prefs";
 static const char* PREFS_KEY_SSID   = "wifi_ssid";
-static const char* PREFS_KEY_PASS   = "wifi_password";
+static const char* PREFS_KEY_PASS   = "wifi_passphrase";
 const int BOOT_BUTTON_PIN           = 0;
 const int WIFI_CONNECT_BLINK_DELAY  = 500;
 
 static bool _stopConnectingToWifi = false;
 static String _ssid;
-static String _password;
+static String _passphrase;
 static bool _prefsLoaded = false;
 
 static void loadPrefsIfNeeded();
@@ -23,10 +23,10 @@ void connectToWifi() {
 
   loadPrefsIfNeeded();
 
-  if (_ssid.isEmpty()) return;
+  if (_ssid.isEmpty() || _passphrase.isEmpty()) return;
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(_ssid, _password);
+  WiFi.begin(_ssid, _passphrase);
   LOG("[Wi-Fi] Connecting to " + _ssid);
 
   toggleGreenPin(false);
@@ -58,7 +58,7 @@ static void loadPrefsIfNeeded() {
   Preferences prefs;
   prefs.begin(PREFS_NAMESPACE);
 
-  if (!prefs.isKey(PREFS_KEY_SSID) && !prefs.isKey(PREFS_KEY_PASS)) {
+  if (!prefs.isKey(PREFS_KEY_SSID) || !prefs.isKey(PREFS_KEY_PASS)) {
     LOG(F("[Wi-Fi] No Wi-Fi credentials found"));
     prefs.end();
     _prefsLoaded = true;
@@ -66,20 +66,20 @@ static void loadPrefsIfNeeded() {
   }
 
   _ssid     = prefs.getString(PREFS_KEY_SSID, "");
-  _password = prefs.getString(PREFS_KEY_PASS, "");
+  _passphrase = prefs.getString(PREFS_KEY_PASS, "");
   prefs.end();
   _prefsLoaded = true;
 }
 
-void writeWifiConf(String ssid, String password) {
+void writeWifiConf(String ssid, String passphrase) {
   Preferences prefs;
   prefs.begin(PREFS_NAMESPACE);
   prefs.putString(PREFS_KEY_SSID, ssid);
-  prefs.putString(PREFS_KEY_PASS, password);
+  prefs.putString(PREFS_KEY_PASS, passphrase);
   prefs.end();
 
   _ssid        = ssid;
-  _password    = password;
+  _passphrase    = passphrase;
   _prefsLoaded = true;
 }
 

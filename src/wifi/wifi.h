@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 void connectToWifi();
-void writeWifiConf(String ssid, String password);
+void writeWifiConf(String ssid, String passphrase);
 void stopConnectingToWifi();
 bool isConnectedToWifi();
 

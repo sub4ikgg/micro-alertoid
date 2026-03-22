@@ -1,5 +1,6 @@
 #include "ble.h"
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include "wifi/wifi.h"
 #include "resource/resource.h"
 #include "../debug.h"
@@ -31,21 +32,25 @@ class ServerCallbacks : public BLEServerCallbacks {
 
 class WifiConfCallbacks : public BLECharacteristicCallbacks {
     // =====================
-    // config format: ssid;password
+    // config format: {"ssid":"...","passphrase":"..."}
     // =====================
     void onWrite(BLECharacteristic *pChar) {
         String msg = pChar->getValue().c_str();
 
         if (msg.length() > 0) {
-            int separatorIndex = msg.indexOf(';');
+            JsonDocument doc;
+            if (deserializeJson(doc, msg) != DeserializationError::Ok) {
+                LOG(F("[BLE] WifiConf: invalid JSON"));
+                return;
+            }
 
-            String ssid = msg.substring(0, separatorIndex);
-            String password = msg.substring(separatorIndex + 1);
+            String ssid     = doc["ssid"].as<String>();
+            String passphrase = doc["passphrase"].as<String>();
 
-            LOG("[BLE] Received " + ssid + " with password " + password);
+            LOG("[BLE] Received " + ssid + " with passphrase " + passphrase);
 
             stopConnectingToWifi();
-            writeWifiConf(ssid, password);
+            writeWifiConf(ssid, passphrase);
             connectToWifi();
         }
     }
@@ -53,20 +58,25 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
 
 class UrlConfCallbacks : public BLECharacteristicCallbacks {
     // =====================
-    // config format: url;code;check_interval;blink_interval;
+    // config format: {"url":"...","code":200,"check_interval":30}
     // =====================
     void onWrite(BLECharacteristic *pChar) {
         String msg = pChar->getValue().c_str();
 
         if (msg.length() > 0) {
-            int separatorIndex = msg.indexOf(';');
+            JsonDocument doc;
+            if (deserializeJson(doc, msg) != DeserializationError::Ok) {
+                LOG(F("[BLE] UrlConf: invalid JSON"));
+                return;
+            }
 
-            String url = msg.substring(0, separatorIndex);
-            int code   = msg.substring(separatorIndex + 1).toInt();
+            String url   = doc["url"].as<String>();
+            int code     = doc["code"].as<int>();
+            int interval = doc["check_interval"].as<int>();
 
-            LOG("[BLE] Received url " + url + " with code " + String(code));
+            LOG("[BLE] Received url " + url + " code " + String(code) + " interval " + String(interval));
 
-            writeResourceConf(url, code);
+            writeResourceConf(url, code, interval);
         }
     }
 };
