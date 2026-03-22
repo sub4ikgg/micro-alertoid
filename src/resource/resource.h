@@ -6,5 +6,7 @@
 void checkResourceAvailability();
 void writeResourceConf(String url, int expectedCode, int checkInterval);
 int getResourceCheckInterval();
+String getResourceUrl();
+int getResourceExpectedCode();
 
 #endif

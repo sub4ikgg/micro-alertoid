@@ -15,7 +15,7 @@ static const char* PREFS_KEY_CODE        = "res_code";
 static const char* PREFS_KEY_INTERVAL    = "res_interval";
 static const char* DEFAULT_RESOURCE_URL  = "https://httpbin.org/status/200";
 const int DEFAULT_EXPECTED_CODE          = 200;
-const int DEFAULT_CHECK_INTERVAL         = 30;
+const int DEFAULT_CHECK_INTERVAL         = 50;
 
 static String _url;
 static int _expectedCode    = -1;
@@ -24,7 +24,7 @@ static int _checkInterval   = -1;
 static void loadPrefsIfNeeded();
 
 void checkResourceAvailability() {
-  LOG("[Resource] Left memory: " + String(ESP.getFreeHeap()));
+  LOG("[Resource] Left memory before check: " + String(ESP.getMaxAllocHeap()));
 
   if (digitalRead(BOOT_BUTTON_PIN) == LOW && isBleAdvertising) return;
 
@@ -34,13 +34,14 @@ void checkResourceAvailability() {
   LOG("[Resource] " + _url);
 
   HTTPClient http;
-  http.begin(_url);
+  http.begin(_url.c_str());
 
   int code = http.GET();
   http.end();
 
   if (code < 0) {
     LOG(F("[Resource] Retrying..."));
+    LOG("[Resource] Left memory after failure: " + String(ESP.getMaxAllocHeap()));
     return;
   }
 
@@ -63,7 +64,7 @@ void checkResourceAvailability() {
     resourceIsNotAvailableBlink();
   }
 
-  LOG("[Resource] Left memory: " + String(ESP.getFreeHeap()));
+  LOG("[Resource] Left memory after check: " + String(ESP.getMaxAllocHeap()));
 }
 
 static void loadPrefsIfNeeded() {
@@ -93,4 +94,14 @@ void writeResourceConf(String url, int expectedCode, int checkInterval) {
 int getResourceCheckInterval() {
   loadPrefsIfNeeded();
   return _checkInterval;
+}
+
+String getResourceUrl() {
+  loadPrefsIfNeeded();
+  return _url;
+}
+
+int getResourceExpectedCode() {
+  loadPrefsIfNeeded();
+  return _expectedCode;
 }

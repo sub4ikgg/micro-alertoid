@@ -72,12 +72,25 @@ class UrlConfCallbacks : public BLECharacteristicCallbacks {
 
             String url   = doc["url"].as<String>();
             int code     = doc["code"].as<int>();
-            int interval = doc["check_interval"].as<int>();
+            int interval = doc["check_interval"].as<int>() * 10;
 
             LOG("[BLE] Received url " + url + " code " + String(code) + " interval " + String(interval));
 
             writeResourceConf(url, code, interval);
         }
+    }
+};
+
+class UrlConfReadCallbacks : public BLECharacteristicCallbacks {
+    void onRead(BLECharacteristic *pChar) {
+        JsonDocument doc;
+        doc["url"]            = getResourceUrl();
+        doc["code"]           = getResourceExpectedCode();
+        doc["check_interval"] = getResourceCheckInterval() / 10;
+
+        String json;
+        serializeJson(doc, json);
+        pChar->setValue(json.c_str());
     }
 };
 
@@ -105,7 +118,7 @@ void initBle() {
     BLEServer *pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks());
 
-    BLEService *pService = pServer->createService(BLEUUID(BLE_SERVICE_UUID), 20);
+    BLEService *pService = pServer->createService(BLEUUID(BLE_SERVICE_UUID), 22);
     BLEDevice::getAdvertising()->addServiceUUID(BLE_SERVICE_UUID);
 
     pTxChar = pService->createCharacteristic(
@@ -131,6 +144,12 @@ void initBle() {
         BLECharacteristic::PROPERTY_READ
     );
     pFirmwareChar->setCallbacks(new FirmwareCallbacks());
+
+    BLECharacteristic *pUrlConfReadChar = pService->createCharacteristic(
+        BLE_URL_CONF_READ_UUID,
+        BLECharacteristic::PROPERTY_READ
+    );
+    pUrlConfReadChar->setCallbacks(new UrlConfReadCallbacks());
 
     BLECharacteristic *pRebootChar = pService->createCharacteristic(
         BLE_REBOOT_UUID,
