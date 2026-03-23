@@ -1,11 +1,16 @@
 #include "ble.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "wifi/wifi.h"
 #include "resource/resource.h"
 #include "../debug.h"
 
 #define FIRMWARE_VERSION "1.0.0"
+
+bool isWifiConfigChanged = false;
+char newWifiConfig[256] = "";
+
+bool isUrlConfigChanged = false;
+char newUrlConfig[256] = "";
 
 bool isBleInitialized = false;
 bool isBleDeviceConnected = false;
@@ -35,24 +40,15 @@ class WifiConfCallbacks : public BLECharacteristicCallbacks {
     // config format: {"ssid":"...","passphrase":"..."}
     // =====================
     void onWrite(BLECharacteristic *pChar) {
-        String msg = pChar->getValue().c_str();
+        size_t len = pChar->getLength();
+        if (len == 0) return;
 
-        if (msg.length() > 0) {
-            JsonDocument doc;
-            if (deserializeJson(doc, msg) != DeserializationError::Ok) {
-                LOG(F("[BLE] WifiConf: invalid JSON"));
-                return;
-            }
+        size_t copy_len = min(len, sizeof(newWifiConfig) - 1);
+        memcpy(newWifiConfig, pChar->getData(), copy_len);
+        newWifiConfig[copy_len] = '\0';
 
-            String ssid     = doc["ssid"].as<String>();
-            String passphrase = doc["passphrase"].as<String>();
-
-            LOG("[BLE] Received " + ssid + " with passphrase " + passphrase);
-
-            stopConnectingToWifi();
-            writeWifiConf(ssid, passphrase);
-            connectToWifi();
-        }
+        LOG(F("[BLE] Received new wifi config"));
+        isWifiConfigChanged = true;
     }
 };
 
@@ -61,23 +57,15 @@ class UrlConfCallbacks : public BLECharacteristicCallbacks {
     // config format: {"url":"...","code":200,"check_interval":30}
     // =====================
     void onWrite(BLECharacteristic *pChar) {
-        String msg = pChar->getValue().c_str();
+        size_t len = pChar->getLength();
+        if (len == 0) return;
 
-        if (msg.length() > 0) {
-            JsonDocument doc;
-            if (deserializeJson(doc, msg) != DeserializationError::Ok) {
-                LOG(F("[BLE] UrlConf: invalid JSON"));
-                return;
-            }
+        size_t copy_len = min(len, sizeof(newUrlConfig) - 1);
+        memcpy(newUrlConfig, pChar->getData(), copy_len);
+        newUrlConfig[copy_len] = '\0';
 
-            String url   = doc["url"].as<String>();
-            int code     = doc["code"].as<int>();
-            int interval = doc["check_interval"].as<int>() * 10;
-
-            LOG("[BLE] Received url " + url + " code " + String(code) + " interval " + String(interval));
-
-            writeResourceConf(url, code, interval);
-        }
+        LOG(F("[BLE] Received new url config"));
+        isUrlConfigChanged = true;
     }
 };
 
@@ -86,7 +74,7 @@ class UrlConfReadCallbacks : public BLECharacteristicCallbacks {
         JsonDocument doc;
         doc["url"]            = getResourceUrl();
         doc["code"]           = getResourceExpectedCode();
-        doc["check_interval"] = getResourceCheckInterval() / 10;
+        doc["check_interval"] = getResourceCheckInterval() * 10;
 
         String json;
         serializeJson(doc, json);

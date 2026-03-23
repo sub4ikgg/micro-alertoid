@@ -14,6 +14,12 @@
 #define BLE_REBOOT_UUID        "6E400006-B5A3-F393-E0A9-E50E24DCCA9E"
 #define BLE_URL_CONF_READ_UUID "6E400007-B5A3-F393-E0A9-E50E24DCCA9E"
 
+extern char newWifiConfig[256];
+extern bool isWifiConfigChanged;
+
+extern char newUrlConfig[256];
+extern bool isUrlConfigChanged;
+
 extern bool isBleDeviceConnected;
 extern bool isBleAdvertising;
 
