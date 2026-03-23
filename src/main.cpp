@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
 #include "led/led.h"
 #include "wifi/wifi.h"
 #include "ble/ble.h"
@@ -20,6 +21,8 @@ int bleAutoStopCounter = 0;
 int resourceCheckingCounter = 0;
 
 static void setInsecureWifiClient();
+static void handleNewWifiConfig();
+static void handleNewUrlConfig();
 
 void setup() {
   if (DEBUG) {
@@ -32,7 +35,6 @@ void setup() {
   preparePinMode();
   testLeds();
 
-  initBle();
   setInsecureWifiClient();
 
   if (esp_reset_reason() == ESP_RST_SW) {
@@ -53,6 +55,52 @@ static void setInsecureWifiClient() {
   secureClient.setInsecure();
 }
 
+static void handleNewWifiConfig() {
+  if (!isWifiConfigChanged) return;
+  isWifiConfigChanged = false;
+
+  JsonDocument doc;
+  if (deserializeJson(doc, newWifiConfig) != DeserializationError::Ok) {
+    LOG(F("[Loop] New wifi config: invalid JSON"));
+    return;
+  }
+
+  const char* ssid       = doc["ssid"];
+  const char* passphrase = doc["passphrase"];
+
+  if (!ssid || !passphrase) {
+    LOG(F("[Loop] New wifi config: missing ssid or passphrase"));
+    return;
+  }
+
+  LOG("[Loop] Applying new Wi-Fi config: " + String(ssid));
+  writeWifiConf(ssid, passphrase);
+  connectToWifi();
+}
+
+static void handleNewUrlConfig() {
+  if (!isUrlConfigChanged) return;
+  isUrlConfigChanged = false;
+
+  JsonDocument doc;
+  if (deserializeJson(doc, newUrlConfig) != DeserializationError::Ok) {
+    LOG(F("[Loop] New url config: invalid JSON"));
+    return;
+  }
+
+  const char* url = doc["url"];
+  int code        = doc["code"].as<int>();
+  int interval    = doc["check_interval"].as<int>() * 10;
+
+  if (!url) {
+    LOG(F("[Loop] New url config: missing url"));
+    return;
+  }
+
+  LOG(F("[Loop] Applying new url config"));
+  writeResourceConf(url, code, interval);
+}
+
 void loop() {
   if (digitalRead(BOOT_BUTTON_PIN) == LOW && !isBleAdvertising) {
     toggleRedPin(false);
@@ -62,14 +110,18 @@ void loop() {
     if (++bleToggleCounter > BLE_TOGGLE_PRESS_THRESHOLD)
     {
       bleToggleCounter = 0;
+      initBle();
       startBleAdvertising();
     }
 
-    delay(1000);
+    delay(500);
     return;
   } else if (bleToggleCounter > 0) {
     bleToggleCounter = 0;
   }
+
+  handleNewWifiConfig();
+  handleNewUrlConfig();
 
   if (isBleAdvertising || isBleDeviceConnected) {
     if (isBleDeviceConnected) {
